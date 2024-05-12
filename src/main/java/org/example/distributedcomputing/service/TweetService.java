@@ -66,7 +66,7 @@ public class TweetService {
                         .httpStatus(HttpStatus.NOT_FOUND)
                         .build());
 
-        if (!entity.getTitle().equals(tweetDTO.getTitle()) && tweetRepository.existsByTitle(tweetDTO.getTitle())) {
+        if (titleExists(tweetDTO)) {
             throw CustomException.builder()
                     .httpStatus(HttpStatus.FORBIDDEN)
                     .message(ErrorMessage.TWEET_TITLE_ALREADY_EXISTS.getText())
@@ -89,6 +89,12 @@ public class TweetService {
         entity.setTitle(tweetDTO.getTitle());
         entity = tweetRepository.save(entity);
         return tweetMapper.toDTO(entity);
+    }
+
+    private boolean titleExists(TweetDTO tweetDTO) {
+        return tweetRepository.findTweetByTitle(tweetDTO.getTitle())
+                .filter(tweet -> !tweet.getId().equals(tweetDTO.getId()))
+                .isPresent();
     }
 
     public List<TweetDTO> getAll() {

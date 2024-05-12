@@ -28,7 +28,7 @@ public class CommentService {
         Comment entity = commentMapper.toEntity(commentDTO);
         Tweet tweet = tweetRepository.findById(commentDTO.getTweetId())
                 .orElseThrow(() -> CustomException.builder()
-                        .message("Tweet not found")
+                        .message(ErrorMessage.TWEET_NOT_FOUND.getText())
                         .httpStatus(HttpStatus.NOT_FOUND)
                         .build());
 

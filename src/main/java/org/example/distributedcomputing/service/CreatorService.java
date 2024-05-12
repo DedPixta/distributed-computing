@@ -56,7 +56,7 @@ public class CreatorService {
                         .httpStatus(HttpStatus.NOT_FOUND)
                         .build());
 
-        if (!entity.getLogin().equals(creatorDTO.getLogin()) && creatorRepository.existsByLogin(creatorDTO.getLogin())) {
+        if (loginExists(creatorDTO)) {
             throw CustomException.builder()
                     .httpStatus(HttpStatus.FORBIDDEN)
                     .message(ErrorMessage.CREATOR_LOGIN_ALREADY_EXISTS.getText())
@@ -68,6 +68,12 @@ public class CreatorService {
         entity.setLastname(creatorDTO.getLastname());
         entity = creatorRepository.save(entity);
         return creatorMapper.toDTO(entity);
+    }
+
+    private boolean loginExists(CreatorDTO creatorDTO) {
+        return creatorRepository.findCreatorByLogin(creatorDTO.getLogin())
+                .filter(creator -> !creator.getId().equals(creatorDTO.getId()))
+                .isPresent();
     }
 
     public List<CreatorDTO> getAll() {
