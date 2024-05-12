@@ -1,16 +1,18 @@
 package org.example.distributedcomputing.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.distributedcomputing.exception.CustomException;
 import org.example.distributedcomputing.mapper.StickerMapper;
 import org.example.distributedcomputing.model.dto.StickerDTO;
 import org.example.distributedcomputing.model.entity.Sticker;
 import org.example.distributedcomputing.repository.StickerRepository;
+import org.example.distributedcomputing.util.ErrorMessage;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Service
 public class StickerService {
@@ -26,24 +28,42 @@ public class StickerService {
     }
 
     public StickerDTO getOne(Long id) {
-        Sticker entity = stickerRepository.findById(id).orElseThrow();
-        return stickerMapper.toDTO(entity);
+        return stickerRepository.findById(id)
+                .map(stickerMapper::toDTO)
+                .orElseThrow(() -> CustomException.builder()
+                        .message(ErrorMessage.STICKER_NOT_FOUND.getText())
+                        .httpStatus(HttpStatus.NOT_FOUND)
+                        .build());
     }
 
     @Transactional
     public void deleteOne(Long id) {
+        if (!stickerRepository.existsById(id)) {
+            throw CustomException.builder()
+                    .message(ErrorMessage.STICKER_NOT_FOUND.getText())
+                    .httpStatus(HttpStatus.NOT_FOUND)
+                    .build();
+        }
+
         stickerRepository.deleteById(id);
     }
 
     @Transactional
-    public StickerDTO updateOne(Long id, StickerDTO stickerDTO) {
-        Sticker entity = stickerRepository.findById(id).orElseThrow();
+    public StickerDTO updateOne(StickerDTO stickerDTO) {
+        Sticker entity = stickerRepository.findById(stickerDTO.getId())
+                .orElseThrow(() -> CustomException.builder()
+                        .message(ErrorMessage.STICKER_NOT_FOUND.getText())
+                        .httpStatus(HttpStatus.NOT_FOUND)
+                        .build());
+
         entity.setName(stickerDTO.getName());
         entity = stickerRepository.save(entity);
         return stickerMapper.toDTO(entity);
     }
 
     public List<StickerDTO> getAll() {
-        return stickerMapper.toDTOs(stickerRepository.findAll());
+        return stickerRepository.findAll().stream()
+                .map(stickerMapper::toDTO)
+                .toList();
     }
 }

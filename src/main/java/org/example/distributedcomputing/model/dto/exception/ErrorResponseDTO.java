@@ -1,4 +1,4 @@
-package org.example.distributedcomputing.model.dto;
+package org.example.distributedcomputing.model.dto.exception;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

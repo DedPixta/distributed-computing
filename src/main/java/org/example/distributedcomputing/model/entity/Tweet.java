@@ -8,28 +8,28 @@ import java.util.List;
 
 @Data
 @Entity
-@Table(name = "tweets")
+@Table(name = "tbl_tweet")
 public class Tweet {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "title", nullable = false)
+    @Column(name = "title", nullable = false, unique = true)
     private String title;
+
+    @Column(name = "content", nullable = false)
+    private String content;
 
     @ManyToOne
     @JoinColumn(name = "creator_id", nullable = false)
     private Creator creator;
 
     @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "tweets_stickers",
+    @JoinTable(name = "tbl_tweet_sticker",
             joinColumns = @JoinColumn(name = "tweet_id"),
             inverseJoinColumns = @JoinColumn(name = "sticker_id"))
     private List<Sticker> stickers;
-
-    @OneToMany(mappedBy = "tweet")
-    private List<Comment> comments;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
