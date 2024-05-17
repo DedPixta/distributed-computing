@@ -45,6 +45,13 @@ public class CreatorService {
 
     @Transactional
     public void deleteOne(Long id) {
+        if (!creatorRepository.existsById(id)) {
+            throw CustomException.builder()
+                    .message(ErrorMessage.CREATOR_NOT_FOUND.getText())
+                    .httpStatus(HttpStatus.NOT_FOUND)
+                    .build();
+        }
+
         creatorRepository.deleteById(id);
     }
 
@@ -66,6 +73,7 @@ public class CreatorService {
         entity.setLogin(creatorDTO.getLogin());
         entity.setFirstname(creatorDTO.getFirstname());
         entity.setLastname(creatorDTO.getLastname());
+        entity.setPassword(creatorDTO.getPassword());
         entity = creatorRepository.save(entity);
         return creatorMapper.toDTO(entity);
     }

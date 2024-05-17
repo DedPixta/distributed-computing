@@ -22,7 +22,7 @@ public class CreatorDTO {
 
     @Schema(description = "Some password", requiredMode = REQUIRED, example = "secret")
     @NotNull(message = "password is required")
-    @Size(min = 8, max = 128, message = "Login must be between 2 and 64 characters")
+    @Size(min = 8, max = 128, message = "Password must be between 8 and 128 characters")
     private String password;
 
     @Schema(description = "First name", requiredMode = REQUIRED, example = "John")
