@@ -48,6 +48,13 @@ public class CommentService {
 
     @Transactional
     public void deleteOne(Long id) {
+        if (!commentRepository.existsById(id)) {
+            throw CustomException.builder()
+                    .message(ErrorMessage.COMMENT_NOT_FOUND.getText())
+                    .httpStatus(HttpStatus.NOT_FOUND)
+                    .build();
+        }
+
         commentRepository.deleteById(id);
     }
 

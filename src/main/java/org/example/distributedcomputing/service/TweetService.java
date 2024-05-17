@@ -55,6 +55,13 @@ public class TweetService {
 
     @Transactional
     public void deleteOne(Long id) {
+        if (!tweetRepository.existsById(id)) {
+            throw CustomException.builder()
+                    .message(ErrorMessage.TWEET_NOT_FOUND.getText())
+                    .httpStatus(HttpStatus.NOT_FOUND)
+                    .build();
+        }
+
         tweetRepository.deleteById(id);
     }
 
