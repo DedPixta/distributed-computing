@@ -1,0 +1,22 @@
+server:
+  port: 24130
+spring:
+  application:
+    name: discussion
+  cassandra:
+    keyspace-name: distcomp
+    schema-action: CREATE_IF_NOT_EXISTS
+    port: 9042
+    contact-points: localhost
+    local-datacenter: datacenter1
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
+    enabled: false
+springdoc:
+  api-docs.path: "/public/swagger/v3/api-docs"
+  swagger-ui.path: "/public/swagger/swagger-ui.html"
+  swagger-ui:
+    doc-expansion: none
+logging:
+  level:
+    org.springframework.data: DEBUG
