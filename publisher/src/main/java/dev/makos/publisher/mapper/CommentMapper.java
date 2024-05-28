@@ -1,6 +1,7 @@
 package dev.makos.publisher.mapper;
 
 import dev.makos.publisher.model.dto.CommentDTO;
+import dev.makos.publisher.model.dto.RemoteCommentDTO;
 import dev.makos.publisher.model.entity.Comment;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -14,4 +15,9 @@ public interface CommentMapper {
     @Mapping(target = "tweet", ignore = true)
     Comment toEntity(CommentDTO commentDTO);
 
+    @Mapping(target = "country", ignore = true)
+    RemoteCommentDTO toRemoteDTO(Comment comment);
+
+    @Mapping(target = "tweet", ignore = true)
+    Comment toEntity(RemoteCommentDTO remoteCommentDTO);
 }

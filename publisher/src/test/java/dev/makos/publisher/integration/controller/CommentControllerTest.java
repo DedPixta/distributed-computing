@@ -5,7 +5,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dev.makos.publisher.integration.config.SpringBootTestContainers;
 import dev.makos.publisher.model.dto.CommentDTO;
 import dev.makos.publisher.model.dto.exception.ErrorResponseDTO;
-import dev.makos.publisher.model.entity.Comment;
 import dev.makos.publisher.model.entity.Creator;
 import dev.makos.publisher.model.entity.Tweet;
 import dev.makos.publisher.repository.CommentRepository;
