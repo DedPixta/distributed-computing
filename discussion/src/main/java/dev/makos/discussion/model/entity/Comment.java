@@ -15,4 +15,15 @@ public class Comment {
     @Column
     private String content;
 
+    public void setCountry(String country) {
+        this.key.setCountry(country);
+    }
+
+    public void setTweetId(Long tweetId) {
+        this.key.setTweetId(tweetId);
+    }
+
+    public void setId(Long id) {
+        this.key.setId(id);
+    }
 }

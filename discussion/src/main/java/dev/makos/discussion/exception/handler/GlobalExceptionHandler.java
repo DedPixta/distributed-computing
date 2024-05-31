@@ -1,12 +1,13 @@
 package dev.makos.discussion.exception.handler;
 
-import dev.makos.publisher.exception.CustomException;
-import dev.makos.publisher.model.dto.exception.ErrorResponseDTO;
+import dev.makos.discussion.exception.CustomException;
+import dev.makos.discussion.model.dto.exception.ErrorResponseDTO;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -24,10 +25,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
-                                                                  HttpHeaders headers,
+                                                                  @Nullable HttpHeaders headers,
                                                                   HttpStatusCode status,
-                                                                  WebRequest request) {
+                                                                  @Nullable WebRequest request) {
         Map<String, String> invalidFields = ex.getFieldErrors().stream()
+                .filter(fieldError -> fieldError != null && fieldError.getDefaultMessage() != null)
                 .collect(toMap(FieldError::getField, DefaultMessageSourceResolvable::getDefaultMessage));
 
         ErrorResponseDTO errorResponseDTO = ErrorResponseDTO.builder()

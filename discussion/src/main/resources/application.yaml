@@ -19,4 +19,4 @@ springdoc:
     doc-expansion: none
 logging:
   level:
-    org.springframework.data: DEBUG
+    org.springframework.data: info
