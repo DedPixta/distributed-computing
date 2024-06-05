@@ -107,11 +107,29 @@ class CreatorServiceTest {
         assertEquals(HttpStatus.NOT_FOUND, exception.getHttpStatus());
     }
 
+    @DisplayName("Delete one creator with no creator found")
+    @Test
+    void deleteOne_throwException_whenCreatorNotFound() {
+        // given
+        Long id = 1L;
+
+        when(creatorRepository.existsById(id)).thenReturn(false);
+        // when
+        CustomException exception = assertThrows(CustomException.class, () -> underTest.deleteOne(id));
+        // then
+        assertEquals(ErrorMessage.CREATOR_NOT_FOUND.getText(), exception.getMessage());
+        assertEquals(HttpStatus.NOT_FOUND, exception.getHttpStatus());
+
+        verify(creatorRepository, never()).deleteById(id);
+    }
+
     @DisplayName("Delete one creator successfully")
     @Test
     void deleteOne_deleteCreator() {
         // given
         Long id = 1L;
+
+        when(creatorRepository.existsById(id)).thenReturn(true);
         // when
         underTest.deleteOne(id);
         // then

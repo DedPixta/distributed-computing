@@ -127,11 +127,29 @@ class TweetServiceTest {
         assertEquals(tweet.getTitle(), result.getTitle());
     }
 
+    @DisplayName("Delete one tweet when not found")
+    @Test
+    void deleteOne_throwException_whenTweetNotFound() {
+        // given
+        Long id = 1L;
+
+        when(tweetRepository.existsById(id)).thenReturn(false);
+        // when
+        CustomException exception = assertThrows(CustomException.class, () -> underTest.deleteOne(id));
+        // then
+        assertEquals(ErrorMessage.TWEET_NOT_FOUND.getText(), exception.getMessage());
+        assertEquals(HttpStatus.NOT_FOUND, exception.getHttpStatus());
+
+        verify(tweetRepository, never()).deleteById(id);
+    }
+
     @DisplayName("Delete one tweet successfully")
     @Test
     void deleteOne() {
         // given
         Long id = 1L;
+
+        when(tweetRepository.existsById(id)).thenReturn(true);
         // when
         underTest.deleteOne(id);
         // then

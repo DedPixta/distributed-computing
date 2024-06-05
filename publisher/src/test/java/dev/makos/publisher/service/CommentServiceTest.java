@@ -4,6 +4,7 @@ import dev.makos.publisher.exception.CustomException;
 import dev.makos.publisher.mapper.CommentMapper;
 import dev.makos.publisher.mapper.CommentMapperImpl;
 import dev.makos.publisher.model.dto.CommentDTO;
+import dev.makos.publisher.model.entity.Comment;
 import dev.makos.publisher.model.entity.Tweet;
 import dev.makos.publisher.repository.CommentRepository;
 import dev.makos.publisher.repository.TweetRepository;
@@ -111,11 +112,29 @@ class CommentServiceTest {
         assertEquals(expected, result);
     }
 
+    @DisplayName("Delete one comment with no comment found")
+    @Test
+    void deleteOne_throwException_whenCommentNotFound() {
+        // given
+        Long id = 1L;
+
+        when(commentRepository.existsById(id)).thenReturn(false);
+        // when
+        CustomException exception = assertThrows(CustomException.class, () -> underTest.deleteOne(id));
+        // then
+        assertEquals(ErrorMessage.COMMENT_NOT_FOUND.getText(), exception.getMessage());
+        assertEquals(HttpStatus.NOT_FOUND, exception.getHttpStatus());
+
+        verify(commentRepository, never()).deleteById(any());
+    }
+
     @DisplayName("Delete one comment")
     @Test
     void deleteOne_deleteComment() {
         // given
         Long id = 1L;
+
+        when(commentRepository.existsById(id)).thenReturn(true);
         // when
         underTest.deleteOne(id);
         // then

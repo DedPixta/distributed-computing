@@ -5,6 +5,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dev.makos.publisher.integration.config.SpringBootTestContainers;
 import dev.makos.publisher.model.dto.CommentDTO;
 import dev.makos.publisher.model.dto.exception.ErrorResponseDTO;
+import dev.makos.publisher.model.entity.Comment;
 import dev.makos.publisher.model.entity.Creator;
 import dev.makos.publisher.model.entity.Tweet;
 import dev.makos.publisher.repository.CommentRepository;
@@ -14,8 +15,10 @@ import dev.makos.publisher.util.ErrorMessage;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -25,8 +28,14 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.AdditionalMatchers.not;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @AutoConfigureMockMvc
@@ -37,7 +46,7 @@ class CommentControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-    @Autowired
+    @MockBean
     private CommentRepository commentRepository;
     @Autowired
     private TweetRepository tweetRepository;
@@ -50,12 +59,31 @@ class CommentControllerTest {
     void beforeEach() {
         Creator creator = createCreator();
         tweet = createTweet(creator);
-        comment = createComment(tweet);
+
+        comment = Comment.builder()
+                .id(1L)
+                .content("init-content")
+                .tweet(tweet)
+                .build();
+
+        Comment comment2 = Comment.builder()
+                .id(2L)
+                .content("init-content-2")
+                .tweet(tweet)
+                .build();
+
+        List<Comment> comments = List.of(comment, comment2);
+
+        when(commentRepository.findAll()).thenReturn(comments);
+        when(commentRepository.findById(comment.getId())).thenReturn(Optional.of(comment));
+        when(commentRepository.findById(not(eq(comment.getId())))).thenReturn(Optional.empty());
+        when(commentRepository.save(comment)).thenReturn(comment);
+        when(commentRepository.existsById(comment.getId())).thenReturn(true);
+        when(commentRepository.existsById(not(eq(comment.getId())))).thenReturn(false);
     }
 
     @AfterEach
     void afterEach() {
-        commentRepository.deleteAll();
         tweetRepository.deleteAll();
         creatorRepository.deleteAll();
     }
@@ -92,7 +120,7 @@ class CommentControllerTest {
         // given
         CommentDTO commentDTO = new CommentDTO();
         commentDTO.setContent("content");
-        commentDTO.setTweetId(1L);
+        commentDTO.setTweetId(100L);
 
         String requestBody = objectMapper.writeValueAsString(commentDTO);
         // when
@@ -113,9 +141,12 @@ class CommentControllerTest {
     @Test
     void saveOne_returnsCreated() throws Exception {
         // given
+        ArgumentCaptor<Comment> captor = ArgumentCaptor.forClass(Comment.class);
+        when(commentRepository.save(any())).thenReturn(comment);
+
         CommentDTO commentDTO = new CommentDTO();
-        commentDTO.setContent("new comment");
-        commentDTO.setTweetId(tweet.getId());
+        commentDTO.setContent(comment.getContent());
+        commentDTO.setTweetId(comment.getTweet().getId());
 
         String requestBody = objectMapper.writeValueAsString(commentDTO);
         // when
@@ -132,6 +163,11 @@ class CommentControllerTest {
         assertNotNull(savedDTO.getId());
         assertEquals(commentDTO.getContent(), savedDTO.getContent());
         assertEquals(commentDTO.getTweetId(), savedDTO.getTweetId());
+
+        verify(commentRepository).save(captor.capture());
+        Comment savedEntity = captor.getValue();
+        assertEquals(commentDTO.getContent(), savedEntity.getContent());
+        assertEquals(commentDTO.getTweetId(), savedEntity.getTweet().getId());
     }
 
     @Test
@@ -174,7 +210,7 @@ class CommentControllerTest {
         List<CommentDTO> commentDTOs = objectMapper.readValue(contentAsString, objectMapper.getTypeFactory()
                 .constructCollectionType(List.class, CommentDTO.class));
 
-        assertEquals(1, commentDTOs.size());
+        assertEquals(2, commentDTOs.size());
     }
 
     @Test
@@ -196,11 +232,14 @@ class CommentControllerTest {
 
     @Test
     void deleteOne_deletesComment() throws Exception {
+        // given
+        when(commentRepository.existsById(comment.getId())).thenReturn(true).thenReturn(false);
+
         // when
         this.mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1.0/comments/{id}", comment.getId()))
                 .andExpect(status().isNoContent());
 
-        MvcResult mvcResult = this.mockMvc.perform(MockMvcRequestBuilders.get("/api/v1.0/comments/{id}", comment.getId()))
+        MvcResult mvcResult = this.mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1.0/comments/{id}", comment.getId()))
                 .andExpect(status().isNotFound()).andReturn();
 
         // then
@@ -331,13 +370,5 @@ class CommentControllerTest {
                 .creator(creator)
                 .build();
         return tweetRepository.save(tweet);
-    }
-
-    private Comment createComment(Tweet tweet) {
-        Comment comment = Comment.builder()
-                .content("init-content")
-                .tweet(tweet)
-                .build();
-        return commentRepository.save(comment);
     }
 }
