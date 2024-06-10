@@ -25,3 +25,5 @@ springdoc:
   swagger-ui.path: "/public/swagger/swagger-ui.html"
   swagger-ui:
     doc-expansion: none
+discussion:
+  url: http://localhost:24130
