@@ -5,7 +5,7 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
     https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
-    <include file="/db/changelog/1.0.0/db.changelog.xml"/>
-    <include file="/db/changelog/2.0.0/db.changelog.xml"/>
-
+    <changeSet id="2.0.0-1" author="m.kossatyy">
+        <dropTable tableName="tbl_comment"/>
+    </changeSet>
 </databaseChangeLog>

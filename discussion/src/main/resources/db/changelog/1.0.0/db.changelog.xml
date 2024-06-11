@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="1.0.0-1" author="m.kossatyy">
+        <sql>
+            CREATE TABLE ids (
+                name    TEXT,
+                next_id COUNTER,
+                PRIMARY KEY (name)
+            );
+        </sql>
+    </changeSet>
+
+    <changeSet id="1.0.0-2" author="m.kossatyy">
+        <sql>
+            CREATE TABLE tbl_comment(
+                country  TEXT,
+                tweet_id BIGINT,
+                id       BIGINT,
+                content  TEXT,
+                PRIMARY KEY ((country), tweet_id, id)
+            ) WITH CLUSTERING ORDER BY (tweet_id ASC, id ASC);
+        </sql>
+    </changeSet>
+</databaseChangeLog>

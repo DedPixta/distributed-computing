@@ -11,7 +11,7 @@ spring:
     local-datacenter: datacenter1
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.xml
-    enabled: false
+    enabled: true
 springdoc:
   api-docs.path: "/public/swagger/v3/api-docs"
   swagger-ui.path: "/public/swagger/swagger-ui.html"
