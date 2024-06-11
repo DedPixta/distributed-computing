@@ -15,9 +15,10 @@ public interface CommentMapper {
     @Mapping(target = "tweet", ignore = true)
     Comment toEntity(CommentDTO commentDTO);
 
+    @Mapping(target = "tweetId", source = "tweet.id")
     @Mapping(target = "country", ignore = true)
     CommentCassandraDTO toCassandraDTO(Comment comment);
 
-    @Mapping(target = "tweet", ignore = true)
+    @Mapping(target = "tweet.id", source = "tweetId")
     Comment toEntity(CommentCassandraDTO remoteCommentDTO);
 }

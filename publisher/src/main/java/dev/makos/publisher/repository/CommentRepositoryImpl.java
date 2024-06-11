@@ -6,6 +6,7 @@ import dev.makos.publisher.model.entity.Comment;
 import dev.makos.publisher.model.entity.Tweet;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
@@ -19,6 +20,8 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 @Repository
 public class CommentRepositoryImpl implements CommentRepository {
 
+    private static final String COUNTRY = "KZ";
+
     private final CommentMapper commentMapper;
     private final TweetRepository tweetRepository;
 
@@ -27,7 +30,27 @@ public class CommentRepositoryImpl implements CommentRepository {
 
     @Override
     public Comment save(Comment comment) {
-        return null;
+        CommentCassandraDTO body = commentMapper.toCassandraDTO(comment);
+        body.setCountry(COUNTRY);
+
+        try {
+            CommentCassandraDTO dto = RestClient.create().post()
+                    .uri(url + "/api/v1.0/comments")
+                    .contentType(APPLICATION_JSON)
+                    .body(body)
+                    .retrieve()
+                    .body(CommentCassandraDTO.class);
+
+            Comment entity = commentMapper.toEntity(dto);
+
+            if (dto != null) {
+                entity.setTweet(comment.getTweet());
+            }
+
+            return entity;
+        } catch (RestClientResponseException e) {
+            return comment;
+        }
     }
 
     @Override
@@ -54,16 +77,45 @@ public class CommentRepositoryImpl implements CommentRepository {
 
     @Override
     public boolean existsById(Long id) {
-        return false;
+        return findById(id).isPresent();
     }
 
     @Override
     public void deleteById(Long id) {
-
+        RestClient.create().delete()
+                .uri(url + "/api/v1.0/comments/{id}", id)
+                .retrieve()
+                .toBodilessEntity();
     }
 
     @Override
     public List<Comment> findAll() {
-        return List.of();
+        try {
+            List<CommentCassandraDTO> commentDTOs = RestClient.create().get()
+                    .uri(url + "/api/v1.0/comments")
+                    .accept(APPLICATION_JSON)
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<>() {
+                    });
+
+            if (commentDTOs == null) {
+                return List.of();
+            }
+
+            List<Comment> comments = commentDTOs.stream()
+                    .map(commentMapper::toEntity)
+                    .toList();
+
+            for (Comment comment : comments) {
+                if (comment.getTweet() != null && comment.getTweet().getId() != null) {
+                    Optional<Tweet> tweet = tweetRepository.findById(comment.getTweet().getId());
+                    tweet.ifPresent(comment::setTweet);
+                }
+            }
+
+            return comments;
+        } catch (RestClientResponseException e) {
+            return List.of();
+        }
     }
 }
