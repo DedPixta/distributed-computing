@@ -8,6 +8,7 @@ The goal of this project is to develop the service from a monolith into microser
 - Java 21
 - Gradle
 - PostgreSQL
+- Cassandra
 - Liquibase
 - Testcontainers
 - Mapstruct
@@ -15,7 +16,7 @@ The goal of this project is to develop the service from a monolith into microser
 
 ## Goals
 - [x] Create a monolith service for storing messages on PostgreSQL
-- [ ] Split the monolith into microservices on PostgreSQL and Cassandra
+- [x] Split the monolith into microservices on PostgreSQL and Cassandra
 - [ ] Add message broker Kafka for interaction between services
 - [ ] Add Redis for caching
 - [ ] Add docker-compose for running services
