@@ -197,6 +197,9 @@ class CommentControllerTest {
         String contentAsString = mvcResult.getResponse().getContentAsString();
         CommentDTO foundDTO = objectMapper.readValue(contentAsString, CommentDTO.class);
         assertNotNull(foundDTO);
+        assertEquals(comment.getContent(), foundDTO.getContent());
+        assertEquals(comment.getTweet().getId(), foundDTO.getTweetId());
+        assertEquals(comment.getContent(), foundDTO.getContent());
     }
 
     @Test
