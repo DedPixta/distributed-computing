@@ -33,8 +33,12 @@ public class CommentRepositoryImpl implements CommentRepository {
         CommentCassandraDTO body = commentMapper.toCassandraDTO(comment);
         body.setCountry(COUNTRY);
 
+
+
         try {
-            CommentCassandraDTO dto = RestClient.create().post()
+            RestClient restClient = RestClient.create();
+            RestClient.RequestBodyUriSpec method = comment.getId() == null ? restClient.post(): restClient.put();
+            CommentCassandraDTO dto = method
                     .uri(url + "/api/v1.0/comments")
                     .contentType(APPLICATION_JSON)
                     .body(body)
