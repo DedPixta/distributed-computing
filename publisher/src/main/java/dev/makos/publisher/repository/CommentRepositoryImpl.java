@@ -1,12 +1,15 @@
 package dev.makos.publisher.repository;
 
+import dev.makos.publisher.kafka.producer.KafkaCommentProducer;
 import dev.makos.publisher.mapper.CommentMapper;
+import dev.makos.publisher.model.State;
 import dev.makos.publisher.model.dto.CommentCassandraDTO;
 import dev.makos.publisher.model.entity.Comment;
 import dev.makos.publisher.model.entity.Tweet;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
@@ -24,57 +27,36 @@ public class CommentRepositoryImpl implements CommentRepository {
 
     private final CommentMapper commentMapper;
     private final TweetRepository tweetRepository;
+    private final KafkaCommentProducer kafkaProducer;
 
     @Value("${discussion.url}")
     private String url;
 
     @Override
     public Comment save(Comment comment) {
-        CommentCassandraDTO body = commentMapper.toCassandraDTO(comment);
-        body.setCountry(COUNTRY);
+        comment.setState(State.PENDING);
 
+        CommentCassandraDTO commentDTO = commentMapper.toCassandraDTO(comment);
+        commentDTO.setCountry(COUNTRY);
+        commentDTO.setMethod(HttpMethod.POST.toString());
 
+        kafkaProducer.sendAndReceive(commentDTO);
 
-        try {
-            RestClient restClient = RestClient.create();
-            RestClient.RequestBodyUriSpec method = comment.getId() == null ? restClient.post(): restClient.put();
-            CommentCassandraDTO dto = method
-                    .uri(url + "/api/v1.0/comments")
-                    .contentType(APPLICATION_JSON)
-                    .body(body)
-                    .retrieve()
-                    .body(CommentCassandraDTO.class);
-
-            Comment entity = commentMapper.toEntity(dto);
-
-            if (dto != null) {
-                entity.setTweet(comment.getTweet());
-            }
-
-            return entity;
-        } catch (RestClientResponseException e) {
-            return comment;
-        }
+        return comment;
     }
 
     @Override
     public Optional<Comment> findById(Long id) {
+
+        CommentCassandraDTO commentDTO = new CommentCassandraDTO();
+        commentDTO.setId(id);
+        commentDTO.setCountry(COUNTRY);
+        commentDTO.setMethod(HttpMethod.GET.toString());
+
         try {
-            CommentCassandraDTO dto = RestClient.create().get()
-                    .uri(url + "/api/v1.0/comments/{id}", id)
-                    .accept(APPLICATION_JSON)
-                    .retrieve()
-                    .body(CommentCassandraDTO.class);
-
-            Comment entity = commentMapper.toEntity(dto);
-
-            if (dto != null && dto.getTweetId() != null) {
-                Optional<Tweet> tweet = tweetRepository.findById(dto.getTweetId());
-                tweet.ifPresent(entity::setTweet);
-            }
-
-            return Optional.of(entity);
-        } catch (RestClientResponseException e) {
+            CommentCassandraDTO commentCassandraDTO = kafkaProducer.sendAndReceive(commentDTO);
+            return Optional.of(commentMapper.toEntity(commentCassandraDTO));
+        } catch (Exception e) {
             return Optional.empty();
         }
     }
@@ -86,10 +68,13 @@ public class CommentRepositoryImpl implements CommentRepository {
 
     @Override
     public void deleteById(Long id) {
-        RestClient.create().delete()
-                .uri(url + "/api/v1.0/comments/{id}", id)
-                .retrieve()
-                .toBodilessEntity();
+
+        CommentCassandraDTO commentDTO = new CommentCassandraDTO();
+        commentDTO.setId(id);
+        commentDTO.setCountry(COUNTRY);
+        commentDTO.setMethod(HttpMethod.DELETE.toString());
+
+        kafkaProducer.sendAndReceive(commentDTO);
     }
 
     @Override

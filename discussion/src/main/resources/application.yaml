@@ -12,6 +12,9 @@ spring:
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.xml
     enabled: true
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:127.0.0.1:9092}
+    reply-topic: ${KAFKA_REPLY_TOPIC:OutTopic}
 springdoc:
   api-docs.path: "/public/swagger/v3/api-docs"
   swagger-ui.path: "/public/swagger/swagger-ui.html"

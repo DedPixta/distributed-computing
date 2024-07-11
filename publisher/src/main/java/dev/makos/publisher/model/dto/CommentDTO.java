@@ -1,5 +1,6 @@
 package dev.makos.publisher.model.dto;
 
+import dev.makos.publisher.model.State;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -23,5 +24,8 @@ public class CommentDTO {
     @Schema(description = "Tweet ID", requiredMode = REQUIRED, example = "1")
     @NotNull(message = "Tweet ID is required")
     private Long tweetId;
+
+    @Schema(description = "State", example = "PENDING")
+    private State state;
 
 }

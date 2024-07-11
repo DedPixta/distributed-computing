@@ -20,6 +20,10 @@ spring:
     show-sql: false
     database: postgresql
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:127.0.0.1:9092}
+    reply-topic: ${KAFKA_REPLY_TOPIC:OutTopic}
+    request-topic: ${KAFKA_REQUEST_TOPIC:InTopic}
 springdoc:
   api-docs.path: "/public/swagger/v3/api-docs"
   swagger-ui.path: "/public/swagger/swagger-ui.html"
